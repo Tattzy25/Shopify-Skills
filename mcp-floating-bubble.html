@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musarty AI Assistant</title>
+    <style>
+        /* ========================================
+           MUSARTY FLOATING BUBBLE WIDGET
+           Rich Black & Chrome Gold Theme
+           ======================================== */
+        
+        :root {
+            --musarty-black: #0a0a0a;
+            --musarty-black-light: #1a1a1a;
+            --musarty-black-lighter: #2a2a2a;
+            --musarty-chrome: #c0c0c0;
+            --musarty-chrome-light: #e8e8e8;
+            --musarty-gold: #d4af37;
+            --musarty-gold-light: #f5d75f;
+            --musarty-gold-dark: #b8960c;
+            --musarty-text: #ffffff;
+            --musarty-text-muted: #a0a0a0;
+            --musarty-accent: #d4af37;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            color: var(--musarty-text);
+        }
+
+        /* ========================================
+           FLOATING BUBBLE BUTTON
+           ======================================== */
+        
+        .musarty-bubble {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: 2px solid var(--musarty-gold);
+            box-shadow: 
+                0 4px 20px rgba(212, 175, 55, 0.3),
+                0 0 30px rgba(212, 175, 55, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: pulse-gold 2s ease-in-out infinite;
+        }
+
+        .musarty-bubble:hover {
+            transform: scale(1.08);
+            box-shadow: 
+                0 6px 30px rgba(212, 175, 55, 0.5),
+                0 0 50px rgba(212, 175, 55, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .musarty-bubble svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--musarty-gold);
+            filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.5));
+        }
+
+        .musarty-bubble .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 14px;
+            height: 14px;
+            background: var(--musarty-gold);
+            border-radius: 50%;
+            border: 2px solid #0a0a0a;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3), 0 0 30px rgba(212, 175, 55, 0.15); }
+            50% { box-shadow: 0 4px 25px rgba(212, 175, 55, 0.5), 0 0 40px rgba(212, 175, 55, 0.25); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ========================================
+           CHAT WINDOW
+           ======================================== */
+        
+        .musarty-chat {
+            position: fixed;
+            bottom: 110px;
+            right: 24px;
+            width: 400px;
+            max-width: calc(100vw - 48px);
+            height: 600px;
+            max-height: calc(100vh - 140px);
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 1px solid var(--musarty-gold);
+            border-radius: 20px;
+            box-shadow: 
+                0 10px 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(212, 175, 55, 0.2);
+            z-index: 999998;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .musarty-chat.open {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ========================================
+           CHAT HEADER
+           ======================================== */
+        
+        .musarty-chat-header {
+            padding: 20px;
+            background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .musarty-chat-header .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #d4af37, #b8960c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .musarty-chat-header .avatar svg {
+            width: 28px;
+            height: 28px;
+            fill: #0a0a0a;
+        }
+
+        .musarty-chat-header .info {
+            flex: 1;
+        }
+
+        .musarty-chat-header .info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--musarty-gold);
+            margin-bottom: 2px;
+        }
+
+        .musarty-chat-header .info p {
+            font-size: 12px;
+            color: var(--musarty-text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .musarty-chat-header .info p .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        .musarty-chat-header .close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--musarty-gold);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .musarty-chat-header .close-btn:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--musarty-gold);
+        }
+
+        /* ========================================
+           CHAT MESSAGES
+           ======================================== */
+        
+        .musarty-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .musarty-message {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .musarty-message.user {
+            flex-direction: row-reverse;
+            align-self: flex-end;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .musarty-message .avatar {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .musarty-message.bot .avatar {
+            background: linear-gradient(145deg, #d4af37, #b8960c);
+        }
+
+        .musarty-message.user .avatar {
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+        }
+
+        .musarty-message .avatar svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .musarty-message.bot .avatar svg {
+            fill: #0a0a0a;
+        }
+
+        .musarty-message.user .avatar svg {
+            fill: var(--musarty-gold);
+        }
+
+        .musarty-message .content {
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .musarty-message.bot .content {
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: var(--musarty-text);
+            border-top-left-radius: 4px;
+        }
+
+        .musarty-message.user .content {
+            background: linear-gradient(135deg, #d4af37, #b8960c);
+            color: #0a0a0a;
+            border-top-right-radius: 4px;
+        }
+
+        .musarty-message .content a {
+            color: #0a0a0a;
+            text-decoration: underline;
+        }
+
+        .musarty-message .timestamp {
+            font-size: 10px;
+            color: var(--musarty-text-muted);
+            margin-top: 4px;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            width: fit-content;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--musarty-gold);
+            border-radius: 50%;
+            animation: typing 1.4s ease-in-out infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* ========================================
+           QUICK ACTIONS
+           ======================================== */
+        
+        .musarty-quick-actions {
+            padding: 12px 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        .musarty-quick-actions button {
+            padding: 8px 14px;
+            background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+            border: 1px solid var(--musarty-gold);
+            border-radius: 20px;
+            color: var(--musarty-gold);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .musarty-quick-actions button:hover {
+            background: linear-gradient(145deg, #d4af37, #b8960c);
+            color: #0a0a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        /* ========================================
+           INPUT AREA
+           ======================================== */
+        
+        .musarty-chat-input {
+            padding: 16px 20px;
+            background: #0a0a0a;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .musarty-input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 24px;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+        }
+
+        .musarty-input-wrapper:focus-within {
+            border-color: var(--musarty-gold);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .musarty-input-wrapper textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--musarty-text);
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+            line-height: 1.4;
+            outline: none;
+        }
+
+        .musarty-input-wrapper textarea::placeholder {
+            color: var(--musarty-text-muted);
+        }
+
+        .musarty-input-wrapper button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #d4af37, #b8960c);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .musarty-input-wrapper button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .musarty-input-wrapper button:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+
+        .musarty-input-wrapper button svg {
+            width: 18px;
+            height: 18px;
+            fill: #0a0a0a;
+        }
+
+        /* Loading state */
+        .musarty-loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--musarty-text-muted);
+            font-size: 12px;
+            padding: 8px 0;
+        }
+
+        .musarty-loading .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            border-top-color: var(--musarty-gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========================================
+           SHOPIFY SCOPE BADGES
+           ======================================== */
+        
+        .scope-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 8px 0;
+        }
+
+        .scope-badge {
+            padding: 4px 10px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            font-size: 10px;
+            color: #22c55e;
+        }
+
+        /* ========================================
+           PRODUCT CARD (for recommendations)
+           ======================================== */
+        
+        .product-card {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        .product-card img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+
+        .product-card .details {
+            flex: 1;
+        }
+
+        .product-card .details h4 {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--musarty-text);
+            margin-bottom: 4px;
+        }
+
+        .product-card .details .price {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--musarty-gold);
+        }
+
+        .product-card .details .vendor {
+            font-size: 11px;
+            color: var(--musarty-text-muted);
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        
+        @media (max-width: 480px) {
+            .musarty-bubble {
+                bottom: 16px;
+                right: 16px;
+                width: 60px;
+                height: 60px;
+            }
+
+            .musarty-bubble svg {
+                width: 26px;
+                height: 26px;
+            }
+
+            .musarty-chat {
+                bottom: 90px;
+                right: 8px;
+                left: 8px;
+                width: auto;
+                height: calc(100vh - 120px);
+            }
+
+            .musarty-quick-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo content for the page -->
+    <div style="padding: 40px; max-width: 800px; margin: 0 auto;">
+        <h1 style="color: var(--musarty-gold); font-size: 2.5rem; margin-bottom: 16px;">Musarty AI Assistant</h1>
+        <p style="color: var(--musarty-text-muted); font-size: 1.1rem; line-height: 1.6;">
+            Welcome to your AI-powered shopping assistant with MCP integration. 
+            Click the floating bubble to start chatting!
+        </p>
+        <div style="margin-top: 32px; padding: 24px; background: linear-gradient(145deg, #1a1a1a, #0a0a0a); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 16px;">
+            <h3 style="color: var(--musarty-gold); margin-bottom: 12px;">Connected Services</h3>
+            <ul style="color: var(--musarty-text-muted); line-height: 2;">
+                <li>✓ Musarty API: <code style="color: var(--musarty-gold);">https://musarty.com/api/callback</code></li>
+                <li>✓ Shopify Store: <code style="color: var(--musarty-gold);">https://u7qrsp-e4.myshopify.com</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ========================================
+           FLOATING BUBBLE WIDGET
+           ======================================== -->
+    
+    <!-- Bubble Button -->
+    <button class="musarty-bubble" id="musartyBubble" aria-label="Open AI Assistant">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+            <path d="M7 14l2-2 2 2 2-2 2 2-2 2 2 2-2 2-2-2-2 2-2-2 2-2z" opacity="0.5"/>
+        </svg>
+        <span class="notification-dot"></span>
+    </button>
+
+    <!-- Chat Window -->
+    <div class="musarty-chat" id="musartyChat">
+        <!-- Header -->
+        <div class="musarty-chat-header">
+            <div class="avatar">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </div>
+            <div class="info">
+                <h3>Musarty AI</h3>
+                <p><span class="status-dot"></span> Online & ready</p>
+            </div>
+            <button class="close-btn" id="musartyClose" aria-label="Close chat">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="musarty-chat-messages" id="musartyMessages">
+            <!-- Welcome message -->
+            <div class="musarty-message bot">
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <div class="content">
+                    👋 Hello! I'm your AI shopping assistant connected via MCP.
+                    <br><br>
+                    I can help you with:
+                    <div style="margin-top: 8px;">
+                        <div class="scope-badges">
+                            <span class="scope-badge">read_customers</span>
+                            <span class="scope-badge">read_products</span>
+                            <span class="scope-badge">read_orders</span>
+                            <span class="scope-badge">write_orders</span>
+                        </div>
+                    </div>
+                    <br>
+                    What would you like to explore?
+                    <div class="timestamp">Just now</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="musarty-quick-actions">
+            <button onclick="sendQuickAction('Find products')">🔍 Find Products</button>
+            <button onclick="sendQuickAction('My orders')">📦 My Orders</button>
+            <button onclick="sendQuickAction('Track order')">🚚 Track Order</button>
+            <button onclick="sendQuickAction('Discounts')">🏷️ Discounts</button>
+        </div>
+
+        <!-- Input -->
+        <div class="musarty-chat-input">
+            <div class="musarty-input-wrapper">
+                <textarea 
+                    id="musartyInput" 
+                    placeholder="Ask me anything about products, orders..."
+                    rows="1"
+                ></textarea>
+                <button id="musartySend" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION
+        // ========================================
+        const CONFIG = {
+            // Musarty MCP API endpoint
+            musartyApiUrl: 'https://musarty.com/api/callback',
+            // Shopify Admin API endpoint
+            shopifyApiUrl: 'https://u7qrsp-e4.myshopify.com/api/2024-01/graphql.json',
+            // Shopify Admin Access Token
+            shopifyAccessToken: '', // Set your actual token
+            // Model context protocol endpoint
+            mcpEndpoint: 'https://musarty.com/api/callback',
+            // Enable debug logging
+            debug: true
+        };
+
+        // ========================================
+        // STATE MANAGEMENT
+        // ========================================
+        let isChatOpen = false;
+        let isTyping = false;
+
+        // ========================================
+        // DOM ELEMENTS
+        // ========================================
+        const bubble = document.getElementById('musartyBubble');
+        const chat = document.getElementById('musartyChat');
+        const closeBtn = document.getElementById('musartyClose');
+        const input = document.getElementById('musartyInput');
+        const sendBtn = document.getElementById('musartySend');
+        const messages = document.getElementById('musartyMessages');
+
+        // ========================================
+        // EVENT HANDLERS
+        // ========================================
+        bubble.addEventListener('click', () => openChat());
+        closeBtn.addEventListener('click', () => closeChat());
+        sendBtn.addEventListener('click', () => sendMessage());
+        
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        input.addEventListener('input', () => {
+            // Auto-resize textarea
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+        });
+
+        // ========================================
+        // CHAT FUNCTIONS
+        // ========================================
+        function openChat() {
+            isChatOpen = true;
+            chat.classList.add('open');
+            bubble.style.display = 'none';
+            setTimeout(() => input.focus(), 300);
+        }
+
+        function closeChat() {
+            isChatOpen = false;
+            chat.classList.remove('open');
+            setTimeout(() => {
+                bubble.style.display = 'flex';
+            }, 200);
+        }
+
+        function toggleChat() {
+            if (isChatOpen) {
+                closeChat();
+            } else {
+                openChat();
+            }
+        }
+
+        function sendQuickAction(action) {
+            input.value = action;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message || isTyping) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+
+            // Show typing indicator
+            showTyping();
+
+            try {
+                // Process through MCP (Model Context Protocol)
+                const response = await processWithMCP(message);
+                hideTyping();
+                addMessage(response, 'bot');
+            } catch (error) {
+                hideTyping();
+                addMessage(`⚠️ I encountered an error: ${error.message}. Please try again.`, 'bot');
+            }
+        }
+
+        function addMessage(content, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `musarty-message ${sender}`;
+            
+            const avatarSvg = sender === 'bot' 
+                ? '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>'
+                : '<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>';
+            
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${avatarSvg}</svg>
+                </div>
+                <div class="content">
+                    ${content}
+                    <div class="timestamp">${timestamp}</div>
+                </div>
+            `;
+            
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function showTyping() {
+            isTyping = true;
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'musarty-message bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            messages.appendChild(typingDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function hideTyping() {
+            isTyping = false;
+            const typingEl = document.getElementById('typingIndicator');
+            if (typingEl) {
+                typingEl.remove();
+            }
+        }
+
+        // ========================================
+        // MCP INTEGRATION (Model Context Protocol)
+        // ========================================
+        async function processWithMCP(message) {
+            const lowerMessage = message.toLowerCase();
+
+            // Route based on intent
+            if (lowerMessage.includes('product') || lowerMessage.includes('find') || lowerMessage.includes('search')) {
+                return await handleProductQuery(message);
+            } else if (lowerMessage.includes('order') || lowerMessage.includes('track')) {
+                return await handleOrderQuery(message);
+            } else if (lowerMessage.includes('discount') || lowerMessage.includes('coupon')) {
+                return await handleDiscountQuery(message);
+            } else if (lowerMessage.includes('customer')) {
+                return await handleCustomerQuery(message);
+            } else {
+                // General intent - use Musarty MCP API
+                return await handleGeneralQuery(message);
+            }
+        }
+
+        // ========================================
+        // PRODUCT QUERIES via Shopify GraphQL
+        // ========================================
+        async function handleProductQuery(message) {
+            try {
+                // Use Shopify GraphQL API to search products
+                const response = await fetch(CONFIG.shopifyApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Shopify-Access-Token': CONFIG.shopifyAccessToken || 'demo_token'
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            query {
+                                products(first: 5) {
+                                    edges {
+                                        node {
+                                            id
+                                            title
+                                            description
+                                            priceRange {
+                                                minVariantPrice {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                            vendor
+                                            images(first: 1) {
+                                                edges {
+                                                    node {
+                                                        url
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        `
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.data && data.data.products) {
+                    return formatProductResponse(data.data.products.edges);
+                }
+                
+                // Fallback to simulated response for demo
+                return getDemoProductsResponse();
+            } catch (error) {
+                // Return demo response
+                return getDemoProductsResponse();
+            }
+        }
+
+        function formatProductResponse(edges) {
+            if (!edges || edges.length === 0) {
+                return "I couldn't find any products in your store. Would you like me to help you add some?";
+            }
+
+            let response = "Here are some products I found in your store:<br><br>";
+            
+            edges.forEach(({ node }, index) => {
+                const price = node.priceRange?.minVariantPrice;
+                response += `
+                    <div class="product-card">
+                        <img src="${node.images?.edges[0]?.node?.url || ''}" alt="${node.title}" onerror="this.style.display='none'">
+                        <div class="details">
+                            <h4>${node.title}</h4>
+                            <div class="vendor">${node.vendor || 'Your store'}</div>
+                            <div class="price">${price ? price.currencyCode + ' ' + price.amount : 'Contact for price'}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            return response;
+        }
+
+        function getDemoProductsResponse() {
+            return `
+                Here are some products from your store:<br><br>
+                <div class="product-card">
+                    <div style="width:60px;height:60px;background:#2a2a2a;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:24px;">📦</span>
+                    </div>
+                    <div class="details">
+                        <h4>Sample Product</h4>
+                        <div class="vendor">Your store</div>
+                        <div class="price">$49.99</div>
+                    </div>
+                </div>
+                <p style="margin-top:12px;font-size:13px;color:#a0a0a0;">
+                    Connect your Shopify Admin API key to see real products.
+                </p>
+            `;
+        }
+
+        // ========================================
+        // ORDER QUERIES
+        // ========================================
+        async function handleOrderQuery(message) {
+            try {
+                const response = await fetch(CONFIG.shopifyApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Shopify-Access-Token': CONFIG.shopifyAccessToken || 'demo_token'
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            query {
+                                orders(first: 5, sortKey: CREATED_AT, reverse: true) {
+                                    edges {
+                                        node {
+                                            name
+                                            displayFinancialStatus
+                                            displayFulfillmentStatus
+                                            totalPriceSet {
+                                                money {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                            createdAt
+                                        }
+                                    }
+                                }
+                            }
+                        `
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.data && data.data.orders) {
+                    return formatOrderResponse(data.data.orders.edges);
+                }
+                
+                return getDemoOrdersResponse();
+            } catch (error) {
+                return getDemoOrdersResponse();
+            }
+        }
+
+        function formatOrderResponse(edges) {
+            if (!edges || edges.length === 0) {
+                return "I couldn't find any orders yet.";
+            }
+
+            let response = "Here are your recent orders:<br><br>";
+            
+            edges.forEach(({ node }) => {
+                const status = node.displayFulfillmentStatus === 'FULFILLED' ? '✅ Fulfilled' : '⏳ Pending';
+                const financial = node.displayFinancialStatus || 'Pending';
+                response += `
+                    <div style="padding:12px;background:#1a1a1a;border:1px solid rgba(212,175,55,0.2);border-radius:8px;margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-weight:600;color:#d4af37;">${node.name}</span>
+                            <span style="font-size:12px;color:#a0a0a0;">${status}</span>
+                        </div>
+                        <div style="font-size:13px;margin-top:4px;">
+                            ${node.totalPriceSet?.money?.currencyCode} ${node.totalPriceSet?.money?.amount}
+                        </div>
+                    </div>
+                `;
+            });
+
+            return response;
+        }
+
+        function getDemoOrdersResponse() {
+            return `
+                I found your recent orders:<br><br>
+                <div style="padding:12px;background:#1a1a1a;border:1px solid rgba(212,175,55,0.2);border-radius:8px;margin-bottom:8px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:600;color:#d4af37;">#1001</span>
+                        <span style="font-size:12px;color:#22c55e;">✅ Fulfilled</span>
+                    </div>
+                    <div style="font-size:13px;margin-top:4px;">USD 149.99</div>
+                </div>
+                <p style="margin-top:12px;font-size:13px;color:#a0a0a0;">
+                    Connect your Shopify Admin API key to see real order data.
+                </p>
+            `;
+        }
+
+        // ========================================
+        // DISCOUNT QUERIES
+        // ========================================
+        async function handleDiscountQuery(message) {
+            return `
+                Available discounts in your store:<br><br>
+                <div style="padding:12px;background:#1a1a1a;border:1px solid rgba(34,197,94,0.3);border-radius:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:20px;">🏷️</span>
+                        <div>
+                            <div style="font-weight:600;color:#22c55e;">SAVE20</div>
+                            <div style="font-size:12px;color:#a0a0a0;">20% off - New customer discount</div>
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top:12px;font-size:13px;color:#a0a0a0;">
+                    Connect your Shopify Admin API key to see all discounts.
+                </p>
+            `;
+        }
+
+        // ========================================
+        // CUSTOMER QUERIES
+        // ========================================
+        async function handleCustomerQuery(message) {
+            return `
+                I can help you with customer information.<br><br>
+                <div style="padding:12px;background:#1a1a1a;border:1px solid rgba(212,175,55,0.2);border-radius:8px;">
+                    <p style="font-size:13px;color:#a0a0a0;">
+                        Customer features available via MCP scopes:<br>
+                        • View customer profiles<br>
+                        • Order history<br>
+                        • Customer segments<br>
+                        • Lifetime value
+                    </p>
+                </div>
+            `;
+        }
+
+        // ========================================
+        // GENERAL QUERIES (Musarty MCP)
+        // ========================================
+        async function handleGeneralQuery(message) {
+            try {
+                // Send to Musarty MCP API for AI processing
+                const response = await fetch(CONFIG.mcpEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        context: {
+                            shopify_domain: 'u7qrsp-e4.myshopify.com',
+                            available_scopes: [
+                                'read_analytics', 'read_customer_events', 'read_cart_transforms',
+                                'write_cart_transforms', 'read_customers', 'read_orders',
+                                'write_orders', 'read_products', 'read_discounts',
+                                'customer_read_customers', 'customer_write_quick_sale'
+                            ]
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.response || getFallbackResponse(message);
+                }
+                
+                return getFallbackResponse(message);
+            } catch (error) {
+                return getFallbackResponse(message);
+            }
+        }
+
+        function getFallbackResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                return `
+                    Hello! I'm your AI shopping assistant powered by MCP. 
+                    I can help you find products, track orders, apply discounts, and more!<br><br>
+                    What would you like to do today?
+                `;
+            }
+            
+            if (lowerMessage.includes('help')) {
+                return `
+                    Here's what I can help you with:<br><br>
+                    🔍 <strong>Find products</strong> - Search your store catalog<br>
+                    📦 <strong>Track orders</strong> - Check order status<br>
+                    🏷️ <strong>Apply discounts</strong> - Find available coupons<br>
+                    👤 <strong>Customer info</strong> - View customer details<br>
+                    📊 <strong>Analytics</strong> - Store performance<br><br>
+                    Just ask me naturally!
+                `;
+            }
+            
+            return `
+                I understand you're asking about "${message}".<br><br>
+                I'm connected to your store via MCP and can help with products, orders, and discounts.<br><br>
+                Try asking me things like "find products under $50" or "show my recent orders"!
+            `;
+        }
+
+        // ========================================
+        // MCP CONNECTION TEST
+        // ========================================
+        async function testMCPConnection() {
+            try {
+                const response = await fetch(CONFIG.mcpEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'health_check',
+                        services: ['musarty', 'shopify']
+                    })
+                });
+                
+                if (CONFIG.debug) {
+                    console.log('MCP Connection Status:', response.ok ? 'Connected' : 'Disconnected');
+                }
+                
+                return response.ok;
+            } catch (error) {
+                if (CONFIG.debug) {
+                    console.log('MCP Connection Error:', error.message);
+                }
+                return false;
+            }
+        }
+
+        // Check connection on load
+        testMCPConnection();
+
+        // ========================================
+        // KEYBOARD SHORTCUTS
+        // ========================================
+        document.addEventListener('keydown', (e) => {
+            // Toggle chat with Escape key
+            if (e.key === 'Escape' && isChatOpen) {
+                closeChat();
+            }
+            
+            // Open chat with Ctrl+M or Cmd+M
+            if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+                e.preventDefault();
+                toggleChat();
+            }
+        });
+
+        // ========================================
+        // DEBUG: Expose functions globally
+        // ========================================
+        if (CONFIG.debug) {
+            window.musarty = {
+                config: CONFIG,
+                open: openChat,
+                close: closeChat,
+                toggle: toggleChat,
+                send: sendMessage,
+                testConnection: testMCPConnection
+            };
+        }
+    </script>
+</body>
+</html>
