@@ -1,14 +1,98 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMerchant } from "@/lib/redis";
+import { getMerchant, redis } from "@/lib/redis";
+import { Ratelimit } from "@upstash/ratelimit";
+import crypto from "crypto";
+
+const ALLOWED_MODELS = [
+  "gpt-4o",
+  "gpt-4o-mini",
+  "o1-preview",
+  "o1-mini",
+  "o3-mini",
+  "gemini-1.5-pro",
+  "gemini-1.5-flash",
+  "claude-3-5-sonnet-20241022",
+  "claude-3-haiku-20240307",
+  "gpt-3.5-turbo",
+  "gemini",
+  "claude"
+];
+
+const ratelimit = new Ratelimit({
+  redis: redis,
+  limiter: Ratelimit.slidingWindow(10, "10 s"),
+  analytics: true,
+});
 
 // POST /api/bubble/chat — multi-model AI chat endpoint for the floating bubble
 // Supports: ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic)
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { merchantId, message, model = "gpt-4o", history = [], context } = body;
+  const contentLength = req.headers.get("content-length");
+  if (contentLength && parseInt(contentLength) > 1024 * 1024) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
 
-  if (!message) {
-    return NextResponse.json({ error: "message required" }, { status: 400 });
+  let body;
+  try {
+    body = await req.json();
+  } catch (e) {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { merchantId, message, model = "gpt-4o", history = [], context, signature, sessionToken } = body;
+
+  if (!message || typeof message !== "string" || message.length > 2000) {
+    return NextResponse.json({ error: "Invalid or too long message (max 2000 chars)" }, { status: 400 });
+  }
+
+  if (!Array.isArray(history) || history.length > 50) {
+    return NextResponse.json({ error: "History too long (max 50 messages)" }, { status: 400 });
+  }
+
+  if (!ALLOWED_MODELS.includes(model)) {
+    return NextResponse.json({ error: "Invalid model requested" }, { status: 400 });
+  }
+
+  if (!merchantId) {
+    return NextResponse.json({ error: "merchantId required" }, { status: 400 });
+  }
+
+  let merchant = null;
+  try {
+    merchant = await getMerchant(merchantId);
+  } catch {
+    // non-fatal
+  }
+
+  if (!merchant) {
+    return NextResponse.json({ error: "Merchant not found" }, { status: 404 });
+  }
+
+  let isAuthenticated = false;
+  if (sessionToken) {
+    const session = await redis.get(`session:${sessionToken}`);
+    if (session && (session as any).merchantId === merchantId) {
+      isAuthenticated = true;
+    }
+  } else if (signature && context?.shopDomain) {
+    const secret = merchant.accessToken;
+    const payload = `${merchantId}:${context.shopDomain}`;
+    const expectedSignature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+    if (signature === expectedSignature) {
+      isAuthenticated = true;
+    }
+  }
+
+  if (!isAuthenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
+  const identifier = `${merchantId}:${ip}`;
+  const { success } = await ratelimit.limit(identifier);
+
+  if (!success) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
   // Build system prompt with merchant context
