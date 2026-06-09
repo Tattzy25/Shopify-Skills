@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Shopify Conversion Agent — 104% Conversion",
-  description: "The world's first Shopify AI agent that converts dead stores into #1 stores. Real carts. Real checkouts. Real revenue.",
+  title: "Musarty — MCP/UCP AI Bubble for Shopify | 104% Conversion",
+  description: "The world's first MCP-native floating AI bubble for Shopify stores. ChatGPT, Gemini, Claude — all in one chrome-gold interface. Real carts. Real checkouts. Real revenue.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

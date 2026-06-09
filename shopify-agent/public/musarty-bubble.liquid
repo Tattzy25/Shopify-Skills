@@ -1,0 +1,25 @@
+{% comment %}
+  Musarty Floating Bubble — MCP/UCP AI for Shopify Stores
+  
+  Installation:
+  1. Go to Shopify Admin → Online Store → Themes → Edit Code
+  2. Create a new snippet: musarty-bubble.liquid
+  3. Paste this code
+  4. In theme.liquid, add {% render 'musarty-bubble' %} before </body>
+  
+  Or use the Script Tag API to inject automatically.
+{% endcomment %}
+
+<script>
+  window.MUSARTY_MERCHANT_ID = "{{ shop.metafields.musarty.merchant_id | default: 'demo' }}";
+  window.MUSARTY_SHOP = "{{ shop.permanent_domain }}";
+  window.MUSARTY_SHOP_NAME = "{{ shop.name | escape }}";
+  window.MUSARTY_CURRENCY = "{{ shop.currency }}";
+</script>
+
+<script 
+  src="https://musarty.com/api/bubble/embed?merchantId={{ shop.metafields.musarty.merchant_id | default: 'demo' }}&shop={{ shop.permanent_domain }}&position=bottom-right"
+  async
+  defer
+  crossorigin="anonymous"
+></script>

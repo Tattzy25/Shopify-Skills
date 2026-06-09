@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useMerchantStore } from "@/store/merchantStore";
+import FloatingBubble from "@/components/FloatingBubble";
 import {
   LineChart, Line, AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList,
@@ -455,6 +456,14 @@ export default function DashboardPage() {
         {/* Settings Tab */}
         {tab === "settings" && <SettingsTab session={session} />}
       </main>
+
+      {/* Musarty Floating Bubble — MCP/UCP AI Assistant */}
+      <FloatingBubble
+        merchantId={session.merchantId}
+        shopName={session.shopName}
+        shopDomain={session.shopDomain}
+        position="bottom-right"
+      />
     </div>
   );
 }

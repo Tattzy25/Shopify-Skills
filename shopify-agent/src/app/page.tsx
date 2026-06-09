@@ -24,6 +24,17 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-4">
           <button
+            onClick={() => router.push("/bubble")}
+            className="px-5 py-2 rounded-lg text-sm font-bold transition-all"
+            style={{
+              background: "linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.08))",
+              border: "1px solid rgba(201,168,76,0.3)",
+              color: "#C9A84C",
+            }}
+          >
+            ◈ Bubble AI
+          </button>
+          <button
             onClick={() => router.push("/onboard")}
             className="px-5 py-2 rounded-lg bg-green-500 hover:bg-green-400 text-black font-bold text-sm transition-all"
           >
