@@ -19,11 +19,11 @@ export async function GET(req: NextRequest) {
   // Version: 1.0.0 | Protocol: MCP + UCP
   
   var MUSARTY_CONFIG = {
-    merchantId: '${merchantId}',
-    shop: '${shop}',
-    model: '${model}',
-    position: '${position}',
-    baseUrl: '${baseUrl}',
+    merchantId: ${JSON.stringify(merchantId)},
+    shop: ${JSON.stringify(shop)},
+    model: ${JSON.stringify(model)},
+    position: ${JSON.stringify(position)},
+    baseUrl: ${JSON.stringify(baseUrl)},
     gold: '#C9A84C',
     goldLight: '#F5D78E',
     goldDark: '#8B6914',
@@ -134,11 +134,19 @@ export async function GET(req: NextRequest) {
   function addMessage(role, content) {
     var msg = document.createElement('div');
     msg.className = 'musarty-msg ' + role;
+    
+    var bubbleMsg = document.createElement('div');
+    bubbleMsg.className = 'musarty-bubble-msg';
+    bubbleMsg.textContent = content; // Use textContent to prevent XSS
+
     if (role === 'assistant') {
-      msg.innerHTML = '<div class="musarty-avatar">M</div><div class="musarty-bubble-msg">' + content + '</div>';
-    } else {
-      msg.innerHTML = '<div class="musarty-bubble-msg">' + content + '</div>';
+      var avatar = document.createElement('div');
+      avatar.className = 'musarty-avatar';
+      avatar.textContent = 'M';
+      msg.appendChild(avatar);
     }
+    
+    msg.appendChild(bubbleMsg);
     msgArea.appendChild(msg);
     msgArea.scrollTop = msgArea.scrollHeight;
     return msg;
