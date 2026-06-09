@@ -481,15 +481,24 @@ function KPICard({ label, value, sub, color }: { label: string; value: string; s
 function OrdersTab({ merchantId, currency }: { merchantId: string; currency: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/orders?merchantId=${merchantId}&limit=20`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch orders");
+        return r.json();
+      })
       .then((d) => { setOrders(d.nodes || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("Orders fetch error:", err);
+        setError(err.message);
+        setLoading(false);
+      });
   }, [merchantId]);
 
   if (loading) return <LoadingSpinner />;
+  if (error) return <div className="p-6 text-red-400 bg-red-400/10 rounded-xl border border-red-400/20">Error loading orders: {error}</div>;
 
   return (
     <div className="glass rounded-2xl overflow-hidden">
@@ -539,15 +548,24 @@ function OrdersTab({ merchantId, currency }: { merchantId: string; currency: str
 function ProductsTab({ merchantId, currency }: { merchantId: string; currency: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/products?merchantId=${merchantId}&limit=20`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch products");
+        return r.json();
+      })
       .then((d) => { setProducts(d.nodes || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("Products fetch error:", err);
+        setError(err.message);
+        setLoading(false);
+      });
   }, [merchantId]);
 
   if (loading) return <LoadingSpinner />;
+  if (error) return <div className="p-6 text-red-400 bg-red-400/10 rounded-xl border border-red-400/20">Error loading products: {error}</div>;
 
   return (
     <div className="glass rounded-2xl overflow-hidden">
@@ -608,15 +626,24 @@ function ProductsTab({ merchantId, currency }: { merchantId: string; currency: s
 function CustomersTab({ merchantId }: { merchantId: string }) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/customers?merchantId=${merchantId}&limit=20`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch customers");
+        return r.json();
+      })
       .then((d) => { setCustomers(d.nodes || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("Customers fetch error:", err);
+        setError(err.message);
+        setLoading(false);
+      });
   }, [merchantId]);
 
   if (loading) return <LoadingSpinner />;
+  if (error) return <div className="p-6 text-red-400 bg-red-400/10 rounded-xl border border-red-400/20">Error loading customers: {error}</div>;
 
   return (
     <div className="glass rounded-2xl overflow-hidden">

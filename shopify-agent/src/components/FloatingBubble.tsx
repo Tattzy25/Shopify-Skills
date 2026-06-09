@@ -194,7 +194,12 @@ export default function FloatingBubble({
         });
 
         const data = await res.json();
-        const reply = data.reply || data.error || "Something went wrong.";
+        
+        if (!res.ok) {
+          throw new Error(data.error || "API request failed");
+        }
+
+        const reply = data.reply || "Something went wrong.";
 
         setMessages((prev) =>
           prev.map((m) =>
@@ -203,13 +208,14 @@ export default function FloatingBubble({
               : m
           )
         );
-      } catch {
+      } catch (err) {
+        console.error("Chat error:", err);
         setMessages((prev) =>
           prev.map((m) =>
             m.isTyping
               ? {
                   ...m,
-                  content: "Connection error. Please try again.",
+                  content: err instanceof Error ? err.message : "Connection error. Please try again.",
                   isTyping: false,
                 }
               : m

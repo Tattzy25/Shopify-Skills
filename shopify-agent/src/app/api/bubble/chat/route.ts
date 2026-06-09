@@ -60,8 +60,9 @@ export async function POST(req: NextRequest) {
   let merchant = null;
   try {
     merchant = await getMerchant(merchantId);
-  } catch {
-    // non-fatal
+  } catch (err) {
+    console.error("Failed to fetch merchant:", err);
+    return NextResponse.json({ error: "Failed to fetch merchant data" }, { status: 500 });
   }
 
   if (!merchant) {
@@ -112,17 +113,17 @@ Always be concise, actionable, and conversion-focused.`;
   }
 
   // Get merchant data for additional context
-  let merchant = null;
+  let merchantContext = null;
   if (merchantId) {
     try {
-      merchant = await getMerchant(merchantId);
-    } catch {
-      // non-fatal
+      merchantContext = await getMerchant(merchantId);
+    } catch (err) {
+      console.error("Failed to fetch merchant context:", err);
     }
   }
 
-  if (merchant) {
-    systemPrompt += `\n\nStore currency: ${merchant.currency}`;
+  if (merchantContext) {
+    systemPrompt += `\n\nStore currency: ${merchantContext.currency}`;
   }
 
   const messages = [
