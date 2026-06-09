@@ -22,6 +22,7 @@ export type MerchantData = {
   id: string;
   shopDomain: string;
   accessToken: string;
+  storefrontToken?: string;
   shopName: string;
   email: string;
   plan: string;

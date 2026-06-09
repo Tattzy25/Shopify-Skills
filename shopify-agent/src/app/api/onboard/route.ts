@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       id: merchantId,
       shopDomain: shop.myshopifyDomain,
       accessToken,
+      storefrontToken,
       shopName: shop.name,
       email: shop.email,
       plan: shop.plan?.displayName || "Unknown",
