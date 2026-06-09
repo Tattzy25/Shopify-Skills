@@ -112,8 +112,7 @@ Always be concise, actionable, and conversion-focused.`;
   }
 
   // Get merchant data for additional context
-  let merchant = null;
-  if (merchantId) {
+  if (merchantId && !merchant) {
     try {
       merchant = await getMerchant(merchantId);
     } catch {
