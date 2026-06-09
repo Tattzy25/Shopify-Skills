@@ -16,6 +16,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Basic validation for storefrontToken if provided
+    if (storefrontToken && typeof storefrontToken !== 'string') {
+      return NextResponse.json(
+        { error: "storefrontToken must be a string" },
+        { status: 400 }
+      );
+    }
+
     // Validate credentials by hitting the Shopify Admin API
     const client = new ShopifyAdminClient({ shopDomain, accessToken });
     let shopInfo: {
